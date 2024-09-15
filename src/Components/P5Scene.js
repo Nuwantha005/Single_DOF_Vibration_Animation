@@ -1,0 +1,289 @@
+import React, { useRef, useEffect } from "react";
+import p5 from "p5";
+
+const P5Sketch = ({
+  inputs,
+  restBtnStat,
+  setResetBtnStat,
+  pauseBtnStat,
+  setPauseBtnStat,
+}) => {
+  const sketchRef = useRef();
+  const inputRef = useRef(inputs);
+  const pauseRef = useRef(pauseBtnStat);
+
+  useEffect(() => {
+    // Update the speed reference when speed prop changes
+    inputRef.current = inputs;
+  }, [inputs]);
+
+  useEffect(() => {
+    pauseRef.current = pauseBtnStat;
+  }, [pauseBtnStat]);
+
+  useEffect(() => {
+    const sketch = (p) => {
+      let m = inputRef.current.m,
+        c = inputRef.current.c,
+        k = inputRef.current.k; // system properties
+      let x0 = inputRef.current.x0,
+        x0dot = inputRef.current.x0dot; // initial conditions
+      let X = 0;
+      let x = 0;
+      let t = 0;
+      let steptime = 0.01;
+
+      let xLocs = [];
+      p.setup = () => {
+        p.createCanvas(
+          sketchRef.current.offsetWidth,
+          sketchRef.current.offsetHeight
+        );
+      };
+
+      p.windowResized = () => {
+        // Resize the canvas when the window size changes
+        p.resizeCanvas(
+          sketchRef.current.offsetWidth,
+          sketchRef.current.offsetHeight
+        );
+      };
+
+      p.draw = () => {
+        let xlineLoc = p.height / 3;
+        let XRange = p.height / 10;
+        let rectSize = p.height / 3;
+        let rectXLoc = p.width * (7 / 10) + p.height / 6;
+        let scaledX = p.map(x, -X, X, XRange, -XRange);
+        let XMax = p.map(X, -X, X, -XRange, XRange);
+
+        p.background(243, 244, 246);
+        drawAxes(xlineLoc, 10);
+
+        p.noFill();
+        p.stroke(0, 0, 255);
+        p.beginShape();
+        for (let i = 0; i < xLocs.length; i++) {
+          p.vertex(
+            10 + 50 * steptime * i,
+            xlineLoc + p.map(xLocs[i], -X, X, XRange, -XRange)
+          );
+        }
+        p.endShape();
+
+        p.stroke(0);
+        p.fill("red");
+        // Draw an ellipse with size controlled by the slider
+        p.rectMode(p.CENTER);
+        p.rect(rectXLoc, xlineLoc + scaledX, rectSize, rectSize);
+
+        let spanDist = 40;
+        let offsetHeight = 60;
+        // Drawing Spring
+        p.strokeWeight(3);
+        p.stroke("black");
+        drawSpring(
+          rectXLoc - spanDist,
+          p.height - offsetHeight,
+          rectXLoc - spanDist,
+          scaledX + xlineLoc + rectSize / 2 + offsetHeight
+        );
+
+        p.line(
+          rectXLoc - spanDist,
+          p.height,
+          rectXLoc - spanDist,
+          p.height - offsetHeight
+        );
+        p.line(
+          rectXLoc - spanDist,
+          scaledX + xlineLoc + rectSize / 2 + offsetHeight,
+          rectXLoc - spanDist,
+          scaledX + xlineLoc + rectSize / 2
+        );
+
+        //Drawing Damper
+        drawDamper(
+          rectXLoc,
+          spanDist,
+          offsetHeight,
+          rectSize,
+          scaledX,
+          xlineLoc,
+          XMax
+        );
+
+        // Style the next points.
+        p.stroke("black");
+        p.strokeWeight(10);
+
+        p.point(rectXLoc, xlineLoc + scaledX);
+
+        p.point(10 + 50 * steptime * xLocs.length, xlineLoc + scaledX);
+
+        p.stroke("green");
+        p.strokeWeight(2);
+        p.line(
+          rectXLoc,
+          xlineLoc + scaledX,
+          10 + 50 * steptime * xLocs.length,
+          xlineLoc + scaledX
+        );
+
+        p.strokeWeight(10);
+        updateStatus();
+
+        // if (pauseRef.current) {
+        //   //setPauseBtnStat();
+        //   p.noLoop();
+        //   console.log("Pause");
+        // } else {
+        //   console.log("Resume");
+        //   p.loop();
+        // }
+        t += steptime;
+        if (t > p.width * 0.01) {
+          xLocs.shift();
+        }
+      };
+
+      function updateStatus() {
+        m = parseFloat(inputRef.current.m);
+        c = parseFloat(inputRef.current.c);
+        k = parseFloat(inputRef.current.k);
+        x0 = parseFloat(inputRef.current.x0); // Initial displacement
+        x0dot = parseFloat(inputRef.current.x0dot); // Initial velocity
+        if (restBtnStat) {
+          t = 0;
+          xLocs = [];
+          setResetBtnStat();
+        }
+        let omega_n = Math.sqrt(k / m);
+        let cc = 2 * Math.sqrt(m * k);
+        let beta = c / cc;
+
+        if (beta < 1) {
+          let omega_d = Math.sqrt(1 - beta * beta) * omega_n;
+          let shi = Math.atan2(x0 * omega_d, x0dot + beta * omega_n * x0);
+          X = x0 / Math.sin(shi);
+          let env = X * Math.exp(-beta * omega_n * t);
+
+          x = env * Math.sin(omega_d * t + shi);
+          xLocs.push(x);
+        }
+      }
+
+      function drawDamper(
+        rectXLoc,
+        spanDist,
+        offsetHeight,
+        rectSize,
+        scaledX,
+        xlineLoc,
+        XMax
+      ) {
+        p.line(
+          rectXLoc + spanDist,
+          p.height,
+          rectXLoc + spanDist,
+          p.height - offsetHeight
+        );
+        p.line(
+          rectXLoc + spanDist - 25,
+          p.height - offsetHeight,
+          rectXLoc + spanDist - 25,
+          xlineLoc * 1.9
+        );
+        p.line(
+          rectXLoc + spanDist + 25,
+          p.height - offsetHeight,
+          rectXLoc + spanDist + 25,
+          xlineLoc * 1.9
+        );
+        p.line(
+          rectXLoc + spanDist - 25,
+          p.height - offsetHeight,
+          rectXLoc + spanDist + 25,
+          p.height - offsetHeight
+        );
+        p.line(
+          rectXLoc + spanDist,
+          scaledX + xlineLoc + rectSize / 2,
+          rectXLoc + spanDist,
+          scaledX + xlineLoc + rectSize / 2 + 3 * XMax - 10
+        );
+
+        p.line(
+          rectXLoc + spanDist - 20,
+          scaledX + xlineLoc + rectSize / 2 + 3 * XMax - 10,
+          rectXLoc + spanDist + 20,
+          scaledX + xlineLoc + rectSize / 2 + 3 * XMax - 10
+        );
+        p.fill(0, 0, 255, p.map(x, X, -X, 150, 255));
+        p.rectMode(p.CORNERS);
+        p.rect(
+          rectXLoc + spanDist - 25,
+          p.height - offsetHeight,
+          rectXLoc + spanDist + 25,
+          scaledX + xlineLoc + rectSize / 2 + 3 * XMax - 10
+        );
+      }
+
+      function drawAxes(xlineLoc, yLineLoc) {
+        p.strokeWeight(15);
+        p.stroke("black");
+        p.line(0, p.height, p.width, p.height);
+
+        p.strokeWeight(3);
+        p.line(yLineLoc, xlineLoc, p.width / 2, xlineLoc);
+        p.line(yLineLoc, 30, yLineLoc, p.height / 1.5 - 30);
+      }
+
+      function drawSpring(sBtmx, sBtmy, sTopx, sTopy) {
+        let numCoils = 10;
+        let sprHeight = sTopy - sBtmy;
+        let radius = 25;
+        let numPoints = 300;
+
+        let theta = makeArr(
+          Math.PI / 2,
+          numCoils * 2 * Math.PI + Math.PI / 2,
+          numPoints
+        );
+        let zSpr = makeArr(0, sprHeight, numPoints);
+        let xSpr = [];
+        for (let index = 0; index < numPoints; index++) {
+          xSpr.push(radius * Math.cos(theta[index]));
+        }
+
+        p.beginShape();
+        p.noFill();
+        for (let i = 0; i < numPoints; i++) {
+          p.vertex(sBtmx + xSpr[i], sBtmy + zSpr[i]);
+        }
+        //console.log(xSpr[10], zSpr[10], theta[10]);
+        p.endShape();
+      }
+    };
+
+    function makeArr(startValue, stopValue, cardinality) {
+      var arr = [];
+      var step = (stopValue - startValue) / (cardinality - 1);
+      for (var i = 0; i < cardinality; i++) {
+        arr.push(startValue + step * i);
+      }
+      return arr;
+    }
+
+    const myP5 = new p5(sketch, sketchRef.current);
+    //sketchRef.current = p;
+
+    return () => {
+      myP5.remove(); // Clean up on component unmount
+    };
+  }, [restBtnStat]);
+
+  return <div ref={sketchRef} className="p5-container w-full h-full" />;
+};
+
+export default P5Sketch;
