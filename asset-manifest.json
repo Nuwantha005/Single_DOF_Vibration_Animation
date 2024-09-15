@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/Single_DOF_Vibration_Animation/static/css/main.55165043.css",
-    "main.js": "/Single_DOF_Vibration_Animation/static/js/main.2b0d963a.js",
+    "main.css": "/Single_DOF_Vibration_Animation/static/css/main.647da35b.css",
+    "main.js": "/Single_DOF_Vibration_Animation/static/js/main.14ca774a.js",
     "static/js/453.4401945b.chunk.js": "/Single_DOF_Vibration_Animation/static/js/453.4401945b.chunk.js",
     "index.html": "/Single_DOF_Vibration_Animation/index.html",
-    "main.55165043.css.map": "/Single_DOF_Vibration_Animation/static/css/main.55165043.css.map",
-    "main.2b0d963a.js.map": "/Single_DOF_Vibration_Animation/static/js/main.2b0d963a.js.map",
+    "main.647da35b.css.map": "/Single_DOF_Vibration_Animation/static/css/main.647da35b.css.map",
+    "main.14ca774a.js.map": "/Single_DOF_Vibration_Animation/static/js/main.14ca774a.js.map",
     "453.4401945b.chunk.js.map": "/Single_DOF_Vibration_Animation/static/js/453.4401945b.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.55165043.css",
-    "static/js/main.2b0d963a.js"
+    "static/css/main.647da35b.css",
+    "static/js/main.14ca774a.js"
   ]
 }
