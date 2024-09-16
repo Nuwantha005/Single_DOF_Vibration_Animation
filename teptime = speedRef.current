@@ -1,0 +1,23 @@
+[33mcommit 0e9574f52440a8f7ceba7026dcf11929f2b63744[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mreactApp[m[33m, [m[1;31morigin/reactApp[m[33m)[m
+Author: Nuwantha005 <nuwanthakumara999@gmail.com>
+Date:   Mon Sep 16 19:33:08 2024 +0530
+
+    speed changes, live animation with slider
+
+[33mcommit 7d2ad6030d80d9277c991f42823272f98ce72e63[m
+Author: Nuwantha005 <nuwanthakumara999@gmail.com>
+Date:   Mon Sep 16 16:18:26 2024 +0530
+
+    Realtime Slider Change
+
+[33mcommit 0fd3a697f53e47d3f86238e9c6c75963d24b0caa[m
+Author: Nuwantha005 <nuwanthakumara999@gmail.com>
+Date:   Sun Sep 15 19:17:15 2024 +0530
+
+    Initial Commit
+
+[33mcommit 8c9db2457487dd1c82b55a140f4a07880b6ce5bb[m
+Author: Nuwantha005 <nuwanthakumara999@gmail.com>
+Date:   Wed Sep 11 21:02:33 2024 +0530
+
+    Initialize project using Create React App

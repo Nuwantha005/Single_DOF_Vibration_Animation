@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import ControlPanel from "./ControlPanel";
 import P5Scene from "./P5Scene";
 
+var Latex = require("react-latex");
+
 function DemoPanel() {
   const [inputs, setInputs] = useState({
     m: 15,
@@ -42,9 +44,9 @@ function DemoPanel() {
     setResetVal((prev) => !prev);
   };
   return (
-    <section className="m-4 grid grid-cols-12 gap-4 h-full">
+    <section className="m-1 grid grid-cols-1 sm:grid-cols-12 gap-4 h-full bg-slate-100">
       {/* Left Section: UI Components */}
-      <div className="col-span-12 sm:col-span-4 md:col-span-3">
+      <div className="sm:col-span-4 lg:col-span-3 bg-slate-100">
         <ControlPanel
           onSliderChange={handleSliderChange}
           onRestClicked={handleResetClick}
@@ -53,18 +55,19 @@ function DemoPanel() {
           onMouseUp={handleMouseUp}
           onSpeedChange={handleSpeedChange}
         />
+        {/* <div className="justify-center h-full bg-slate-100">
+          <h2 className="text-4xl align-middle justify-center">
+            <Latex displayMode={true}>
+              {"$$ x(t) = Xe^{\\beta\\omega_n t}Sin(omega_d t +shi) $$"}
+            </Latex>
+          </h2>
+        </div> */}
       </div>
 
       {/* Right Section: p5.js Animation Frame */}
-      <div className="col-span-12 sm:col-span-8 md:col-span-9 h-full min-h-svh min-w-fit">
-        {/* <P5Sketch
-          size={size}
-          color={color}
-          inputs={inputs}
-          restBtnStat={resetVal}
-          setResetBtnStat={handleResetClick}
-        /> */}
+      <div className="sm:col-span-8 lg:col-span-9 w-full min-h-96 sm:h-full sm:min-h-svh bg-slate-100">
         <P5Scene
+          className={"bg-slate-100"}
           restBtnStat={resetVal}
           setResetBtnStat={handleResetClick}
           pauseBtnStat={pauseVal}

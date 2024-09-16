@@ -40,10 +40,8 @@ function ControlPanel({
   };
 
   return (
-    <div className="flex flex-col">
-      <h2 class="text-4xl font-extrabold dark:text-white">
-        Single DOF Vibrations
-      </h2>
+    <div className="flex flex-col bg-slate-100">
+      <h2 class="text-4xl font-extrabold">Single DOF Vibrations</h2>
       <InputPanel
         labelName={"Mass"}
         initialValue={15}
@@ -93,7 +91,7 @@ function ControlPanel({
         onMouseUp={onMouseUp}
         id="x0dot"
       ></InputPanel>
-      <div className="w-full p-1 m-1">
+      <div className="w-full p-1 m-1 bg-slate-100">
         <label class="block w-full text-left mb-2 text-xl font-bolddark:text-white">
           Speed
         </label>
@@ -124,7 +122,7 @@ function ControlPanel({
           </label>
         </div>
       </div>
-      <div className="grid gap-2 grid-cols-3 p-2 m-2">
+      <div className="grid gap-2 grid-cols-1 p-2 m-1 bg-slate-100 lg:grid-cols-3">
         <button
           onClick={resetClickHandle}
           type="button"

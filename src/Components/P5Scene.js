@@ -303,7 +303,7 @@ const P5Sketch = ({
           rectXLoc + spanDist + 20,
           scaledX + xlineLoc + rectSize / 2 + 3 * XMax - 10
         );
-        p.fill(0, 0, 255, p.map(x, X, -X, 50, 255));
+        p.fill(0, 0, 255, p.map(x, -X, X, 0, 255));
         p.rectMode(p.CORNERS);
         p.rect(
           rectXLoc + spanDist - 25,
@@ -345,7 +345,6 @@ const P5Sketch = ({
         for (let i = 0; i < numPoints; i++) {
           p.vertex(sBtmx + xSpr[i], sBtmy + zSpr[i]);
         }
-        //console.log(xSpr[10], zSpr[10], theta[10]);
         p.endShape();
       }
     };
