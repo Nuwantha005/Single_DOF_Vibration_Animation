@@ -11,11 +11,10 @@ const P5Sketch = ({
   mouseDownVal,
   setMouseUpStat,
 }) => {
-  let steptime = 0.05;
   const sketchRef = useRef();
   const inputRef = useRef(inputs);
   const pauseRef = useRef(pauseBtnStat);
-  const speedRef = useRef();
+  const speedRef = useRef(speed);
   const mouseUpRef = useRef(mouseUpVal);
   const mouseDownRef = useRef(mouseDownVal);
 
@@ -35,6 +34,13 @@ const P5Sketch = ({
   useEffect(() => {
     pauseRef.current = pauseBtnStat;
   }, [pauseBtnStat]);
+
+  useEffect(() => {
+    speedRef.current = speed;
+    steptime = speed;
+  }, [speed]);
+
+  let steptime = 1 / 60;
 
   useEffect(() => {
     const sketch = (p) => {
@@ -81,6 +87,85 @@ const P5Sketch = ({
 
         p.background(243, 244, 246);
         drawAxes(xlineLoc, 10);
+
+        if (mouseDownRef.current) {
+          newXPoints = [];
+          let newX = 0,
+            newXMax = 0;
+          m = parseFloat(inputRef.current.m);
+          c = parseFloat(inputRef.current.c);
+          k = parseFloat(inputRef.current.k);
+          x0 = parseFloat(inputRef.current.x0); // Initial displacement
+          x0dot = parseFloat(inputRef.current.x0dot); // Initial velocity
+          let omega_n = Math.sqrt(k / m);
+          let cc = 2 * Math.sqrt(m * k);
+          let beta = c / cc;
+
+          if (beta < 1) {
+            let omega_d = Math.sqrt(1 - beta * beta) * omega_n;
+            let shi = Math.atan2(x0 * omega_d, x0dot + beta * omega_n * x0);
+            newX = x0 / Math.sin(shi);
+            newXMax = p.map(newX, -newX, newX, -XRange, XRange);
+
+            let startIndex = p.floor(p.width / (50 * 4 * steptime));
+            let t0 = t - startIndex * steptime;
+            for (let i = 0; i < xPoints.length; i++) {
+              let env = X * Math.exp(-beta * omega_n * (t0 + i * steptime));
+              x = env * Math.sin(omega_d * (t0 + i * steptime) + shi);
+              newXPoints.push(x);
+            }
+          }
+          X = newX;
+          XMax = newXMax;
+          x = newXPoints[p.floor(newXPoints.length / 2)];
+          scaledX = p.map(x, -X, X, XRange, -XRange);
+
+          p.stroke("red");
+          p.strokeWeight(2);
+          p.beginShape();
+          p.noFill();
+          for (let id = 0; id < newXPoints.length; id++) {
+            p.vertex(
+              10 + 50 * steptime * id,
+              xlineLoc + p.map(newXPoints[id], -newX, newX, XRange, -XRange)
+            );
+          }
+          p.endShape();
+
+          //Move With
+        }
+        if (mouseUpRef.current) {
+          setMouseUpStat();
+          xPoints = [...newXPoints];
+        }
+        //let startIndex = p.floor(p.width / (50 * 4 * steptime));
+        p.noFill();
+        p.stroke(0, 0, 255);
+        p.strokeWeight(3);
+        p.beginShape();
+        for (let i = 0; i < xPoints.length; i++) {
+          p.vertex(
+            10 + 50 * steptime * i,
+            xlineLoc + p.map(xPoints[i], -X, X, XRange, -XRange)
+          );
+        }
+        p.endShape();
+        // p.beginShape();
+        // for (let i = startIndex - 1; i < xPoints.length; i++) {
+        //   p.vertex(
+        //     10 + 50 * steptime * i,
+        //     xlineLoc + p.map(xPoints[i], -X, X, XRange, -XRange)
+        //   );
+        // }
+        // p.endShape();
+        if (!pauseRef.current) {
+          updateStatus();
+          t += steptime;
+          if (t > p.width / (50 * 2)) {
+            xPoints.shift();
+          }
+        }
+
         p.stroke(0);
         p.fill("red");
         // Draw an ellipse with size controlled by the slider
@@ -136,7 +221,7 @@ const P5Sketch = ({
 
         p.point(10 + (50 * steptime * xPoints.length) / 2, xlineLoc + scaledX);
 
-        p.stroke("green");
+        p.stroke(0, 0, 0, 50);
         p.strokeWeight(2);
         p.line(
           rectXLoc,
@@ -144,76 +229,6 @@ const P5Sketch = ({
           10 + (50 * steptime * xPoints.length) / 2,
           xlineLoc + scaledX
         );
-
-        if (mouseDownRef.current) {
-          newXPoints = [];
-          let newX = 0;
-          m = parseFloat(inputRef.current.m);
-          c = parseFloat(inputRef.current.c);
-          k = parseFloat(inputRef.current.k);
-          x0 = parseFloat(inputRef.current.x0); // Initial displacement
-          x0dot = parseFloat(inputRef.current.x0dot); // Initial velocity
-          let omega_n = Math.sqrt(k / m);
-          let cc = 2 * Math.sqrt(m * k);
-          let beta = c / cc;
-
-          if (beta < 1) {
-            let omega_d = Math.sqrt(1 - beta * beta) * omega_n;
-            let shi = Math.atan2(x0 * omega_d, x0dot + beta * omega_n * x0);
-            newX = x0 / Math.sin(shi);
-
-            let startIndex = p.floor(p.width / (50 * 4 * steptime));
-            let t0 = t - startIndex * steptime;
-            for (let i = 0; i < startIndex * 2; i++) {
-              let env = X * Math.exp(-beta * omega_n * (t0 + i * steptime));
-              x = env * Math.sin(omega_d * (t0 + i * steptime) + shi);
-              newXPoints.push(x);
-            }
-          }
-          p.stroke("red");
-          p.strokeWeight(2);
-          p.beginShape();
-          p.noFill();
-          for (let id = 0; id < newXPoints.length; id++) {
-            p.vertex(
-              10 + 50 * steptime * id,
-              xlineLoc + p.map(newXPoints[id], -newX, newX, XRange, -XRange)
-            );
-          }
-          p.endShape();
-        }
-        if (mouseUpRef.current) {
-          setMouseUpStat();
-          xPoints = [];
-          xPoints = newXPoints.slice();
-        }
-        if (!pauseRef.current) {
-          let startIndex = p.floor(p.width / (50 * 4 * steptime));
-          p.noFill();
-          p.stroke(0, 0, 255);
-          p.strokeWeight(3);
-          p.beginShape();
-          for (let i = 0; i < startIndex; i++) {
-            p.vertex(
-              10 + 50 * steptime * i,
-              xlineLoc + p.map(xPoints[i], -X, X, XRange, -XRange)
-            );
-          }
-          p.endShape();
-          p.beginShape();
-          for (let i = startIndex - 1; i < xPoints.length; i++) {
-            p.vertex(
-              10 + 50 * steptime * i,
-              xlineLoc + p.map(xPoints[i], -X, X, XRange, -XRange)
-            );
-          }
-          p.endShape();
-          updateStatus();
-          t += steptime;
-          if (t > p.width / (50 * 2)) {
-            xPoints.shift();
-          }
-        }
       };
 
       function updateStatus() {
@@ -350,7 +365,7 @@ const P5Sketch = ({
     return () => {
       myP5.remove(); // Clean up on component unmount
     };
-  }, [restBtnStat]);
+  }, [restBtnStat, speed]);
 
   return <div ref={sketchRef} className="p5-container w-full h-full" />;
 };

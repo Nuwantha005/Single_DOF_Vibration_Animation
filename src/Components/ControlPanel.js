@@ -7,8 +7,24 @@ function ControlPanel({
   onPauseClicked,
   onMouseDown,
   onMouseUp,
+  onSpeedChange,
 }) {
   const [pauseBtnText, setPauseBtnText] = useState("Pause");
+  const [timeStat, setTimeStat] = useState(true);
+  const [speedRange, setSpeedRange] = useState(1 / 60);
+
+  const handleCheckBox = (event) => {
+    setTimeStat((prev) => !prev);
+    setSpeedRange(1 / 60);
+    onSpeedChange(1 / 60);
+  };
+
+  const handleSpeedChange = (event) => {
+    setSpeedRange(Number(event.target.value));
+    if (!timeStat) {
+      onSpeedChange(speedRange);
+    }
+  };
 
   const resetClickHandle = (event) => {
     onRestClicked();
@@ -85,15 +101,22 @@ function ControlPanel({
           <input
             id="slider_value"
             type="range"
-            value={50}
-            min={10}
-            max={100}
-            //onChange={handleRangeChange}
+            value={speedRange}
+            min={0.005}
+            max={0.1}
+            disabled={timeStat}
+            onChange={handleSpeedChange}
             className="frex-grow w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-            step="0.01"
+            step="0.001"
           ></input>
           <label class="inline-flex items-center cursor-pointer">
-            <input type="checkbox" value="" class="sr-only peer" />
+            <input
+              checked={timeStat}
+              onChange={handleCheckBox}
+              type="checkbox"
+              value=""
+              class="sr-only peer"
+            />
             <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
             <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
               Realtime

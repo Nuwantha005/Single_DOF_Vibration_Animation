@@ -15,7 +15,11 @@ function DemoPanel() {
   const [pauseVal, setPauseVal] = useState(false);
   const [mouseDownVal, setMouseDownVal] = useState(false);
   const [mouseUpVal, setMouseUpVal] = useState(false);
+  const [speedVal, setSpeedVal] = useState(0.05);
 
+  const handleSpeedChange = (value) => {
+    setSpeedVal(value);
+  };
   const handleMouseDown = () => {
     setMouseDownVal((prev) => !prev);
     setPauseVal(true);
@@ -47,6 +51,7 @@ function DemoPanel() {
           onPauseClicked={handlePauseClick}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
+          onSpeedChange={handleSpeedChange}
         />
       </div>
 
@@ -68,6 +73,7 @@ function DemoPanel() {
           mouseUpVal={mouseUpVal}
           mouseDownVal={mouseDownVal}
           setMouseUpStat={handleMouseUp}
+          speed={speedVal}
         />
       </div>
     </section>
