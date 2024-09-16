@@ -6,11 +6,26 @@ const P5Sketch = ({
   restBtnStat,
   setResetBtnStat,
   pauseBtnStat,
-  setPauseBtnStat,
+  speed,
+  mouseUpVal,
+  mouseDownVal,
+  setMouseUpStat,
 }) => {
+  let steptime = 0.05;
   const sketchRef = useRef();
   const inputRef = useRef(inputs);
   const pauseRef = useRef(pauseBtnStat);
+  const speedRef = useRef();
+  const mouseUpRef = useRef(mouseUpVal);
+  const mouseDownRef = useRef(mouseDownVal);
+
+  useEffect(() => {
+    mouseUpRef.current = mouseUpVal;
+  }, [mouseUpVal]);
+
+  useEffect(() => {
+    mouseDownRef.current = mouseDownVal;
+  }, [mouseDownVal]);
 
   useEffect(() => {
     // Update the speed reference when speed prop changes
@@ -23,17 +38,23 @@ const P5Sketch = ({
 
   useEffect(() => {
     const sketch = (p) => {
-      let m = inputRef.current.m,
-        c = inputRef.current.c,
-        k = inputRef.current.k; // system properties
-      let x0 = inputRef.current.x0,
-        x0dot = inputRef.current.x0dot; // initial conditions
+      // let m = inputRef.current.m,
+      //   c = inputRef.current.c,
+      //   k = inputRef.current.k; // system properties
+      // let x0 = inputRef.current.x0,
+      //   x0dot = inputRef.current.x0dot; // initial conditions
+
+      let m = 15,
+        c = 5,
+        k = 160;
+      let x0 = 1,
+        x0dot = 5;
       let X = 0;
       let x = 0;
       let t = 0;
-      let steptime = 0.01;
 
-      let xLocs = [];
+      let xPoints = [];
+      let newXPoints = [];
       p.setup = () => {
         p.createCanvas(
           sketchRef.current.offsetWidth,
@@ -50,6 +71,7 @@ const P5Sketch = ({
       };
 
       p.draw = () => {
+        x = xPoints[p.floor(xPoints.length / 2)];
         let xlineLoc = p.height / 3;
         let XRange = p.height / 10;
         let rectSize = p.height / 3;
@@ -59,18 +81,6 @@ const P5Sketch = ({
 
         p.background(243, 244, 246);
         drawAxes(xlineLoc, 10);
-
-        p.noFill();
-        p.stroke(0, 0, 255);
-        p.beginShape();
-        for (let i = 0; i < xLocs.length; i++) {
-          p.vertex(
-            10 + 50 * steptime * i,
-            xlineLoc + p.map(xLocs[i], -X, X, XRange, -XRange)
-          );
-        }
-        p.endShape();
-
         p.stroke(0);
         p.fill("red");
         // Draw an ellipse with size controlled by the slider
@@ -102,6 +112,11 @@ const P5Sketch = ({
           scaledX + xlineLoc + rectSize / 2
         );
 
+        p.fill("black");
+        p.stroke("black");
+        p.strokeWeight(1);
+        p.textSize(20);
+        p.text("Time: " + t.toFixed(2), 30, 30);
         //Drawing Damper
         drawDamper(
           rectXLoc,
@@ -119,31 +134,85 @@ const P5Sketch = ({
 
         p.point(rectXLoc, xlineLoc + scaledX);
 
-        p.point(10 + 50 * steptime * xLocs.length, xlineLoc + scaledX);
+        p.point(10 + (50 * steptime * xPoints.length) / 2, xlineLoc + scaledX);
 
         p.stroke("green");
         p.strokeWeight(2);
         p.line(
           rectXLoc,
           xlineLoc + scaledX,
-          10 + 50 * steptime * xLocs.length,
+          10 + (50 * steptime * xPoints.length) / 2,
           xlineLoc + scaledX
         );
 
-        p.strokeWeight(10);
-        updateStatus();
+        if (mouseDownRef.current) {
+          newXPoints = [];
+          let newX = 0;
+          m = parseFloat(inputRef.current.m);
+          c = parseFloat(inputRef.current.c);
+          k = parseFloat(inputRef.current.k);
+          x0 = parseFloat(inputRef.current.x0); // Initial displacement
+          x0dot = parseFloat(inputRef.current.x0dot); // Initial velocity
+          let omega_n = Math.sqrt(k / m);
+          let cc = 2 * Math.sqrt(m * k);
+          let beta = c / cc;
 
-        // if (pauseRef.current) {
-        //   //setPauseBtnStat();
-        //   p.noLoop();
-        //   console.log("Pause");
-        // } else {
-        //   console.log("Resume");
-        //   p.loop();
-        // }
-        t += steptime;
-        if (t > p.width * 0.01) {
-          xLocs.shift();
+          if (beta < 1) {
+            let omega_d = Math.sqrt(1 - beta * beta) * omega_n;
+            let shi = Math.atan2(x0 * omega_d, x0dot + beta * omega_n * x0);
+            newX = x0 / Math.sin(shi);
+
+            let startIndex = p.floor(p.width / (50 * 4 * steptime));
+            let t0 = t - startIndex * steptime;
+            for (let i = 0; i < startIndex * 2; i++) {
+              let env = X * Math.exp(-beta * omega_n * (t0 + i * steptime));
+              x = env * Math.sin(omega_d * (t0 + i * steptime) + shi);
+              newXPoints.push(x);
+            }
+          }
+          p.stroke("red");
+          p.strokeWeight(2);
+          p.beginShape();
+          p.noFill();
+          for (let id = 0; id < newXPoints.length; id++) {
+            p.vertex(
+              10 + 50 * steptime * id,
+              xlineLoc + p.map(newXPoints[id], -newX, newX, XRange, -XRange)
+            );
+          }
+          p.endShape();
+        }
+        if (mouseUpRef.current) {
+          setMouseUpStat();
+          xPoints = [];
+          xPoints = newXPoints.slice();
+        }
+        if (!pauseRef.current) {
+          let startIndex = p.floor(p.width / (50 * 4 * steptime));
+          p.noFill();
+          p.stroke(0, 0, 255);
+          p.strokeWeight(3);
+          p.beginShape();
+          for (let i = 0; i < startIndex; i++) {
+            p.vertex(
+              10 + 50 * steptime * i,
+              xlineLoc + p.map(xPoints[i], -X, X, XRange, -XRange)
+            );
+          }
+          p.endShape();
+          p.beginShape();
+          for (let i = startIndex - 1; i < xPoints.length; i++) {
+            p.vertex(
+              10 + 50 * steptime * i,
+              xlineLoc + p.map(xPoints[i], -X, X, XRange, -XRange)
+            );
+          }
+          p.endShape();
+          updateStatus();
+          t += steptime;
+          if (t > p.width / (50 * 2)) {
+            xPoints.shift();
+          }
         }
       };
 
@@ -155,21 +224,20 @@ const P5Sketch = ({
         x0dot = parseFloat(inputRef.current.x0dot); // Initial velocity
         if (restBtnStat) {
           t = 0;
-          xLocs = [];
+          xPoints = [];
           setResetBtnStat();
         }
         let omega_n = Math.sqrt(k / m);
         let cc = 2 * Math.sqrt(m * k);
         let beta = c / cc;
-
+        let startIndex = p.floor(p.width / (50 * 4 * steptime));
         if (beta < 1) {
           let omega_d = Math.sqrt(1 - beta * beta) * omega_n;
           let shi = Math.atan2(x0 * omega_d, x0dot + beta * omega_n * x0);
           X = x0 / Math.sin(shi);
           let env = X * Math.exp(-beta * omega_n * t);
-
-          x = env * Math.sin(omega_d * t + shi);
-          xLocs.push(x);
+          x = env * Math.sin(omega_d * (t + steptime * startIndex) + shi);
+          xPoints.push(x);
         }
       }
 
@@ -182,6 +250,7 @@ const P5Sketch = ({
         xlineLoc,
         XMax
       ) {
+        p.strokeWeight(3);
         p.line(
           rectXLoc + spanDist,
           p.height,
@@ -219,7 +288,7 @@ const P5Sketch = ({
           rectXLoc + spanDist + 20,
           scaledX + xlineLoc + rectSize / 2 + 3 * XMax - 10
         );
-        p.fill(0, 0, 255, p.map(x, X, -X, 150, 255));
+        p.fill(0, 0, 255, p.map(x, X, -X, 50, 255));
         p.rectMode(p.CORNERS);
         p.rect(
           rectXLoc + spanDist - 25,

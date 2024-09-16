@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 
-function InputPanel({ labelName, initialValue, sensitivity, onChange, id }) {
+function InputPanel({
+  labelName,
+  initialValue,
+  sensitivity,
+  onChange,
+  id,
+  onMouseDown,
+  onMouseUp,
+}) {
   const [rangeVal, setRangeVal] = useState(initialValue);
   const [minValue, setMinValue] = useState(
     initialValue - initialValue * sensitivity
@@ -12,6 +20,15 @@ function InputPanel({ labelName, initialValue, sensitivity, onChange, id }) {
   const handleRangeChange = (event) => {
     setRangeVal(event.target.value);
     onChange(id, event.target.value);
+  };
+
+  const handleMouseDown = (e) => {
+    onMouseDown();
+  };
+
+  const handleMouseUp = (e) => {
+    onMouseUp();
+    onMouseDown();
   };
 
   const handleTextChange = (event) => {
@@ -40,6 +57,8 @@ function InputPanel({ labelName, initialValue, sensitivity, onChange, id }) {
           min={minValue}
           max={maxValue}
           onChange={handleRangeChange}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
           className="frex-grow w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
           step="0.01"
         ></input>
